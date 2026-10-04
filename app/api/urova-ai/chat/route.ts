@@ -170,12 +170,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Pesan pengguna tidak ditemukan." }, { status: 400 });
     }
 
-    const ai = new GoogleGenAI({ apiKey });
-    const models = getModelChain();
-    const contents: GeminiContent[] = messages.map((message) => ({
-      role: message.role === "assistant" ? "model" : "user",
-      parts: [{ text: message.content }],
-    }));
+   const ai = new GoogleGenAI({ apiKey });
+const models = getModelChain();
+
+type ChatMessage = {
+  role: "user" | "assistant";
+  content: string;
+};
+
+const contents: GeminiContent[] = messages.map(
+  (message: ChatMessage): GeminiContent => ({
+    role: message.role === "assistant" ? "model" : "user",
+    parts: [{ text: message.content }],
+  })
+);
 
     const { response, model } = await generateWithFallback(ai, models, contents);
     const reply = response.text?.trim();
